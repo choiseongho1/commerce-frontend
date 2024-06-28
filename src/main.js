@@ -9,6 +9,7 @@ const app = createApp(App);
 const { setLoginResult } = useAuth();
 const token = localStorage.getItem("token");
 if (token) {
+  console.log("etst");
   try {
     const decodedToken = jwtDecode(token);
     setLoginResult({
