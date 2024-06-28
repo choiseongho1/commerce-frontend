@@ -11,12 +11,12 @@ jobs:
 
     steps:
     - name: Checkout code
-      uses: actions/checkout@v2
+      uses: actions/checkout@v3  # v2에서 v3으로 업데이트
 
     - name: Set up Node.js
-      uses: actions/setup-node@v2
+      uses: actions/setup-node@v3  # v2에서 v3으로 업데이트
       with:
-        node-version: '14'
+        node-version: '20'  # Node.js 버전을 20으로 업데이트
 
     - name: Install dependencies
       run: npm install
