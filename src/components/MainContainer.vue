@@ -4,7 +4,7 @@
     <div class="features">
       <h2>Our Features</h2>
       <p>
-        <strong>관리자 기능</strong>: 관리자는 사용자 관리 및 모든 구매/판매
+        <strong>관리자 기능1</strong>: 관리자는 사용자 관리 및 모든 구매/판매
         목록을 조회할 수 있습니다.
       </p>
       <p>
