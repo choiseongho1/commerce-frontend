@@ -22,6 +22,15 @@ jobs:
       run: npm install
       working-directory: .
 
+    - name: Install Vue CLI
+      run: npm install -g @vue/cli
+
+    - name: Build project
+      run: npm run build
+
+    - name: Verify dist directory
+      run: ls -la dist
+
     - name: Copy project files via SSH
       env:
         SSH_PRIVATE_KEY: ${{ secrets.SSH_PRIVATE_KEY }}
@@ -36,5 +45,5 @@ jobs:
         SSH_PRIVATE_KEY: ${{ secrets.SSH_PRIVATE_KEY }}
       run: |
         ssh -i ~/.ssh/id_rsa -o StrictHostKeyChecking=no ec2-user@${{ secrets.EC2_HOST }} << 'EOF'
-          tmux new-session -d -s frontend 'cd /home/ec2-user/commerce-frontend && npm install && npm run serve:dev -- --port 3000'
+          screen -dmS frontend bash -c 'cd /home/ec2-user/commerce-frontend && npm install && npm run serve:dev -- --port 3000'
         EOF
