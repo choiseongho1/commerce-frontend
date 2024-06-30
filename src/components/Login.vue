@@ -30,6 +30,7 @@ const router = useRouter();
 const { setLoginResult } = useAuth();
 
 const login = async () => {
+  console.log(`${process.env.VUE_APP_BASE_URL}`);
   try {
     const response = await axios.post(
       `${process.env.VUE_APP_BASE_URL}/default/login`,
