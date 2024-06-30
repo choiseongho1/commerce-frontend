@@ -1,4 +1,4 @@
-name: Deploy to EC2
+name: Deploy Frontend to EC2
 
 on:
   push:
@@ -6,7 +6,7 @@ on:
       - main
 
 jobs:
-  build:
+  build-deploy:
     runs-on: ubuntu-latest
 
     steps:
@@ -20,31 +20,21 @@ jobs:
 
     - name: Install dependencies
       run: npm install
+      working-directory: .
 
-    - name: Install Vue CLI
-      run: npm install -g @vue/cli
-
-    - name: Build project
-      run: npm run build
-
-    - name: Verify dist directory
-      run: ls -la dist
-
-    - name: Copy files via SSH
+    - name: Copy project files via SSH
       env:
         SSH_PRIVATE_KEY: ${{ secrets.SSH_PRIVATE_KEY }}
       run: |
         mkdir -p ~/.ssh
         echo "$SSH_PRIVATE_KEY" > ~/.ssh/id_rsa
         chmod 600 ~/.ssh/id_rsa
-        scp -i ~/.ssh/id_rsa -o StrictHostKeyChecking=no -r dist/* ec2-user@${{ secrets.EC2_HOST }}:/tmp/
+        rsync -avz -e "ssh -o StrictHostKeyChecking=no -i ~/.ssh/id_rsa" ./ ec2-user@${{ secrets.EC2_HOST }}:/home/ec2-user/commerce-frontend/
 
-    - name: Deploy to Nginx
+    - name: Start frontend server
       env:
         SSH_PRIVATE_KEY: ${{ secrets.SSH_PRIVATE_KEY }}
       run: |
         ssh -i ~/.ssh/id_rsa -o StrictHostKeyChecking=no ec2-user@${{ secrets.EC2_HOST }} << 'EOF'
-          sudo rm -rf /usr/share/nginx/html/*
-          sudo mv /tmp/* /usr/share/nginx/html/
-          sudo systemctl restart nginx
+          tmux new-session -d -s frontend 'cd /home/ec2-user/commerce-frontend && npm install && npm run serve:dev -- --port 3000'
         EOF
