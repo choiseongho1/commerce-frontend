@@ -1,4 +1,4 @@
-name: Deploy Frontend to EC2
+name: Deploy to EC2
 
 on:
   push:
@@ -6,7 +6,7 @@ on:
       - main
 
 jobs:
-  build-deploy:
+  build:
     runs-on: ubuntu-latest
 
     steps:
@@ -20,30 +20,31 @@ jobs:
 
     - name: Install dependencies
       run: npm install
-      working-directory: .
-
-    - name: Install Vue CLI
-      run: npm install -g @vue/cli
 
     - name: Build project
       run: npm run build
 
-    - name: Verify dist directory
-      run: ls -la dist
+    - name: Archive project files
+      run: tar czf project_files.tar.gz --exclude=node_modules .
 
-    - name: Copy project files via SSH
+    - name: Copy archived files via SSH
       env:
         SSH_PRIVATE_KEY: ${{ secrets.SSH_PRIVATE_KEY }}
       run: |
         mkdir -p ~/.ssh
         echo "$SSH_PRIVATE_KEY" > ~/.ssh/id_rsa
         chmod 600 ~/.ssh/id_rsa
-        rsync -avz --quiet -e "ssh -o StrictHostKeyChecking=no -i ~/.ssh/id_rsa" ./ ec2-user@${{ secrets.EC2_HOST }}:/home/ec2-user/commerce-frontend/
+        scp -i ~/.ssh/id_rsa -o StrictHostKeyChecking=no project_files.tar.gz ec2-user@${{ secrets.EC2_HOST }}:/home/ec2-user/
 
-    - name: Start frontend server
+    - name: Extract files on EC2 and install dependencies
       env:
         SSH_PRIVATE_KEY: ${{ secrets.SSH_PRIVATE_KEY }}
       run: |
         ssh -i ~/.ssh/id_rsa -o StrictHostKeyChecking=no ec2-user@${{ secrets.EC2_HOST }} << 'EOF'
-          screen -dmS frontend bash -c 'cd /home/ec2-user/commerce-frontend && npm install && npm run serve:dev -- --port 3000'
+          mkdir -p /home/ec2-user/commerce-frontend
+          cd /home/ec2-user/commerce-frontend
+          tar xzf /home/ec2-user/project_files.tar.gz
+          rm /home/ec2-user/project_files.tar.gz
+          npm install
+          npm run serve:dev -- --port 80
         EOF
