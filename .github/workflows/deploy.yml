@@ -18,34 +18,24 @@ jobs:
       with:
         node-version: '20'
 
-    - name: Install dependencies
-      run: npm install
-
     - name: Build project
       run: npm run build
 
-    - name: Archive project files
-      run: |
-        tar --exclude='./node_modules' --exclude='./project_files.tar.gz' -czf project_files.tar.gz .
-
-    - name: Copy archived files via SSH
+    - name: Copy project files via SSH
       env:
         SSH_PRIVATE_KEY: ${{ secrets.SSH_PRIVATE_KEY }}
       run: |
         mkdir -p ~/.ssh
         echo "$SSH_PRIVATE_KEY" > ~/.ssh/id_rsa
         chmod 600 ~/.ssh/id_rsa
-        scp -i ~/.ssh/id_rsa -o StrictHostKeyChecking=no project_files.tar.gz ec2-user@${{ secrets.EC2_HOST }}:/home/ec2-user/
+        rsync -avz --exclude='node_modules' --exclude='.git' -e "ssh -o StrictHostKeyChecking=no -i ~/.ssh/id_rsa" ./ ec2-user@${{ secrets.EC2_HOST }}:/home/ec2-user/commerce-frontend/
 
     - name: Extract files on EC2 and install dependencies
       env:
         SSH_PRIVATE_KEY: ${{ secrets.SSH_PRIVATE_KEY }}
       run: |
         ssh -i ~/.ssh/id_rsa -o StrictHostKeyChecking=no ec2-user@${{ secrets.EC2_HOST }} << 'EOF'
-          mkdir -p /home/ec2-user/commerce-frontend
           cd /home/ec2-user/commerce-frontend
-          tar xzf /home/ec2-user/project_files.tar.gz
-          rm /home/ec2-user/project_files.tar.gz
           npm install
           npm run serve:dev -- --port 80
         EOF
