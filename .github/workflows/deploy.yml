@@ -22,37 +22,16 @@ jobs:
       - name: Copy project files via SSH
         env:
           SSH_PRIVATE_KEY: ${{ secrets.SSH_PRIVATE_KEY }}
-
-    
-        
-          
-    
-
-        
-        Expand All
-    
-    @@ -30,7 +33,7 @@ jobs:
-  
         run: |
           mkdir -p ~/.ssh
           echo "$SSH_PRIVATE_KEY" > ~/.ssh/id_rsa
           chmod 600 ~/.ssh/id_rsa
           rsync -avz --exclude 'node_modules' --exclude '.git' -e "ssh -o StrictHostKeyChecking=no -i ~/.ssh/id_rsa" ./ ec2-user@${{ secrets.EC2_HOST }}:/home/ec2-user/commerce-frontend/
+
       - name: Install dependencies on EC2 and start application
         env:
           SSH_PRIVATE_KEY: ${{ secrets.SSH_PRIVATE_KEY }}
         run: |
-
-    
-        
-          
-    
-
-        
-        Expand All
-    
-    @@ -41,4 +44,6 @@ jobs:
-  
           ssh -o StrictHostKeyChecking=no -i ~/.ssh/id_rsa ec2-user@${{ secrets.EC2_HOST }} << 'EOF'
             cd /home/ec2-user/commerce-frontend
             npm install
