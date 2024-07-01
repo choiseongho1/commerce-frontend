@@ -1,49 +1,65 @@
 name: Deploy to EC2
-
 on:
   push:
     branches:
       - main
-
 jobs:
-  build-deploy:
+  build:
     runs-on: ubuntu-latest
-
     steps:
-    - name: Checkout code
-      uses: actions/checkout@v3
+      - name: Checkout code
+        uses: actions/checkout@v3
+      - name: Set up Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: '20'
+      - name: Install dependencies
+        run: npm install
 
-    - name: Set up Node.js
-      uses: actions/setup-node@v3
-      with:
-        node-version: '20'
+      - name: Build project
+        run: npm run build
 
-    - name: Install dependencies
-      run: npm install
+      - name: Copy project files via SSH
+        env:
+          SSH_PRIVATE_KEY: ${{ secrets.SSH_PRIVATE_KEY }}
 
-    - name: Build project
-      run: npm run build
+    
+        
+          
+    
 
-    - name: Copy project files via SSH
-      env:
-        SSH_PRIVATE_KEY: ${{ secrets.SSH_PRIVATE_KEY }}
-      run: |
-        mkdir -p ~/.ssh
-        echo "$SSH_PRIVATE_KEY" > ~/.ssh/id_rsa
-        chmod 600 ~/.ssh/id_rsa
-        rsync -avz --exclude 'node_modules' --exclude '.git' -e "ssh -o StrictHostKeyChecking=no -i ~/.ssh/id_rsa" ./ ec2-user@${{ secrets.EC2_HOST }}:/home/ec2-user/commerce-frontend/
+        
+        Expand All
+    
+    @@ -30,7 +33,7 @@ jobs:
+  
+        run: |
+          mkdir -p ~/.ssh
+          echo "$SSH_PRIVATE_KEY" > ~/.ssh/id_rsa
+          chmod 600 ~/.ssh/id_rsa
+          rsync -avz --exclude 'node_modules' --exclude '.git' -e "ssh -o StrictHostKeyChecking=no -i ~/.ssh/id_rsa" ./ ec2-user@${{ secrets.EC2_HOST }}:/home/ec2-user/commerce-frontend/
+      - name: Install dependencies on EC2 and start application
+        env:
+          SSH_PRIVATE_KEY: ${{ secrets.SSH_PRIVATE_KEY }}
+        run: |
 
-    - name: Install dependencies on EC2 and start application
-      env:
-        SSH_PRIVATE_KEY: ${{ secrets.SSH_PRIVATE_KEY }}
-      run: |
-        ssh -o StrictHostKeyChecking=no -i ~/.ssh/id_rsa ec2-user@${{ secrets.EC2_HOST }} << 'EOF'
-          cd /home/ec2-user/commerce-frontend
-          npm install
-          npm run build
-          sudo rm -rf /usr/share/nginx/html/*
-          sudo cp -r dist/* /usr/share/nginx/html/
-          sudo systemctl restart nginx
-          pm2 delete all || true
-          pm2 start npm --name "commerce-frontend" -- run serve:dev -- --port 80
-        EOF
+    
+        
+          
+    
+
+        
+        Expand All
+    
+    @@ -41,4 +44,6 @@ jobs:
+  
+          ssh -o StrictHostKeyChecking=no -i ~/.ssh/id_rsa ec2-user@${{ secrets.EC2_HOST }} << 'EOF'
+            cd /home/ec2-user/commerce-frontend
+            npm install
+            npm run build
+            sudo rm -rf /usr/share/nginx/html/*
+            sudo cp -r dist/* /usr/share/nginx/html/
+            sudo systemctl restart nginx
+            pm2 delete all || true
+            pm2 start npm --name "commerce-frontend" -- run serve:dev -- --port 3000
+          EOF
