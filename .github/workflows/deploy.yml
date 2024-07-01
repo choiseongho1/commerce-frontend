@@ -24,21 +24,29 @@ jobs:
     - name: Build project
       run: npm run build
 
-    - name: Copy project files via SSH
+    - name: Archive project files
+      run: tar czf project_files.tar.gz --exclude=node_modules .
+
+    - name: Copy archived files via SSH
       env:
         SSH_PRIVATE_KEY: ${{ secrets.SSH_PRIVATE_KEY }}
       run: |
         mkdir -p ~/.ssh
         echo "$SSH_PRIVATE_KEY" > ~/.ssh/id_rsa
         chmod 600 ~/.ssh/id_rsa
-        rsync -avz --exclude='node_modules' --exclude='.git' -e "ssh -o StrictHostKeyChecking=no -i ~/.ssh/id_rsa" ./ ec2-user@${{ secrets.EC2_HOST }}:/home/ec2-user/commerce-frontend/
+        scp -o StrictHostKeyChecking=no -i ~/.ssh/id_rsa project_files.tar.gz ec2-user@${{ secrets.EC2_HOST }}:/home/ec2-user/
 
     - name: Extract files on EC2 and install dependencies
       env:
         SSH_PRIVATE_KEY: ${{ secrets.SSH_PRIVATE_KEY }}
       run: |
-        ssh -i ~/.ssh/id_rsa -o StrictHostKeyChecking=no ec2-user@${{ secrets.EC2_HOST }} << 'EOF'
-          cd /home/ec2-user/commerce-frontend
+        ssh -o StrictHostKeyChecking=no -i ~/.ssh/id_rsa ec2-user@${{ secrets.EC2_HOST }} << 'EOF'
+          cd /home/ec2-user
+          tar xzf project_files.tar.gz
+          cd commerce-frontend
           npm install
-          npm run serve:dev -- --port 80
+          npm run build
+          sudo rm -rf /usr/share/nginx/html/*
+          sudo cp -r dist/* /usr/share/nginx/html/
+          sudo systemctl restart nginx
         EOF
