@@ -43,5 +43,5 @@ jobs:
             sudo cp -r dist/* /usr/share/nginx/html/
             sudo systemctl restart nginx
             pm2 delete all || true
-            pm2 start --name "commerce-frontend" npm -- run serve:dev -- --port 3000
+            pm2 start npm --name "commerce-frontend" -- start
           EOF
