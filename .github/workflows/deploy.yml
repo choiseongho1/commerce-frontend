@@ -17,6 +17,8 @@ jobs:
         run: npm install
 
       - name: Build project
+        env:
+          VUE_APP_BASE_URL: http://43.202.24.139:8081
         run: npm run build
 
       - name: Copy project files via SSH
@@ -31,6 +33,7 @@ jobs:
       - name: Install dependencies on EC2 and start application
         env:
           SSH_PRIVATE_KEY: ${{ secrets.SSH_PRIVATE_KEY }}
+          VUE_APP_BASE_URL: http://43.202.24.139:8081
         run: |
           ssh -o StrictHostKeyChecking=no -i ~/.ssh/id_rsa ec2-user@${{ secrets.EC2_HOST }} << 'EOF'
             cd /home/ec2-user/commerce-frontend
@@ -40,5 +43,5 @@ jobs:
             sudo cp -r dist/* /usr/share/nginx/html/
             sudo systemctl restart nginx
             pm2 delete all || true
-            pm2 start npm --name "commerce-frontend" -- run serve:dev -- --port 3000
+            pm2 start --name "commerce-frontend" npm -- run serve:dev -- --port 3000
           EOF
