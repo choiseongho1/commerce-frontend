@@ -25,7 +25,8 @@ jobs:
       run: npm run build
 
     - name: Archive project files
-      run: tar czf project_files.tar.gz --exclude=node_modules .
+      run: |
+        tar --exclude='./node_modules' --exclude='./project_files.tar.gz' -czf project_files.tar.gz .
 
     - name: Copy archived files via SSH
       env:
