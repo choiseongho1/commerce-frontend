@@ -18,6 +18,9 @@ jobs:
       with:
         node-version: '20'
 
+    - name: Install Vue CLI globally
+      run: npm install -g @vue/cli
+
     - name: Build project
       run: npm run build
 
