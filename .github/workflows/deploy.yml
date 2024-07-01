@@ -21,6 +21,9 @@ jobs:
       - name: Install dependencies
         run: npm install
 
+      - name: Build project
+        run: npm run build
+
       - name: Copy project files via SSH
         env:
           SSH_PRIVATE_KEY: ${{ secrets.SSH_PRIVATE_KEY }}
@@ -30,7 +33,7 @@ jobs:
           chmod 600 ~/.ssh/id_rsa
           rsync -avz --exclude 'node_modules' --exclude '.git' -e "ssh -o StrictHostKeyChecking=no -i ~/.ssh/id_rsa" ./ ec2-user@${{ secrets.EC2_HOST }}:/home/ec2-user/commerce-frontend/
 
-      - name: Install dependencies on EC2 and build
+      - name: Install dependencies on EC2 and start application
         env:
           SSH_PRIVATE_KEY: ${{ secrets.SSH_PRIVATE_KEY }}
         run: |
@@ -41,4 +44,6 @@ jobs:
             sudo rm -rf /usr/share/nginx/html/*
             sudo cp -r dist/* /usr/share/nginx/html/
             sudo systemctl restart nginx
+            pm2 delete all || true
+            pm2 start npm --name "commerce-frontend" -- run serve:dev -- --port 3000
           EOF
