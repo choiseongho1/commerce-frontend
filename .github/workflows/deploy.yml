@@ -24,26 +24,21 @@ jobs:
     - name: Build project
       run: npm run build
 
-    - name: Archive project files
-      run: tar czf project_files.tar.gz --exclude=node_modules .
-
-    - name: Copy archived files via SSH
+    - name: Copy project files via SSH
       env:
         SSH_PRIVATE_KEY: ${{ secrets.SSH_PRIVATE_KEY }}
       run: |
         mkdir -p ~/.ssh
         echo "$SSH_PRIVATE_KEY" > ~/.ssh/id_rsa
         chmod 600 ~/.ssh/id_rsa
-        scp -o StrictHostKeyChecking=no -i ~/.ssh/id_rsa project_files.tar.gz ec2-user@${{ secrets.EC2_HOST }}:/home/ec2-user/
+        rsync -avz --exclude 'node_modules' --exclude '.git' --exclude 'dist' --exclude 'project_files.tar.gz' -e "ssh -o StrictHostKeyChecking=no -i ~/.ssh/id_rsa" ./ ec2-user@${{ secrets.EC2_HOST }}:/home/ec2-user/commerce-frontend/
 
-    - name: Extract files on EC2 and install dependencies
+    - name: Install dependencies on EC2 and build project
       env:
         SSH_PRIVATE_KEY: ${{ secrets.SSH_PRIVATE_KEY }}
       run: |
         ssh -o StrictHostKeyChecking=no -i ~/.ssh/id_rsa ec2-user@${{ secrets.EC2_HOST }} << 'EOF'
-          cd /home/ec2-user
-          tar xzf project_files.tar.gz
-          cd commerce-frontend
+          cd /home/ec2-user/commerce-frontend
           npm install
           npm run build
           sudo rm -rf /usr/share/nginx/html/*
