@@ -34,7 +34,13 @@ const login = async () => {
   try {
     const response = await axios.post(
       `${process.env.VUE_APP_BASE_URL}/default/login`,
-      loginForm.value
+      loginForm.value,
+      {
+        headers: {
+          "Content-Type": "application/json",
+        },
+        withCredentials: true, // CORS 설정 추가
+      }
     );
     const loginResult = response.data;
     console.log("Login Result:", loginResult); // 디버그 로그 추가
