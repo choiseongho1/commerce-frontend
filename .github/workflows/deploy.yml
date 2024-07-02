@@ -1,18 +1,22 @@
 name: Deploy to EC2
+
 on:
   push:
     branches:
       - main
+
 jobs:
   build:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout code
         uses: actions/checkout@v3
+
       - name: Set up Node.js
         uses: actions/setup-node@v3
         with:
           node-version: '20'
+
       - name: Install dependencies
         run: npm install
 
@@ -33,15 +37,10 @@ jobs:
       - name: Install dependencies on EC2 and start application
         env:
           SSH_PRIVATE_KEY: ${{ secrets.SSH_PRIVATE_KEY }}
-          VUE_APP_BASE_URL: http://43.202.24.139:8081
         run: |
           ssh -o StrictHostKeyChecking=no -i ~/.ssh/id_rsa ec2-user@${{ secrets.EC2_HOST }} << 'EOF'
             cd /home/ec2-user/commerce-frontend
             npm install
-            npm run build
-            sudo rm -rf /usr/share/nginx/html/*
-            sudo cp -r dist/* /usr/share/nginx/html/
-            sudo systemctl restart nginx
             pm2 delete all || true
-            pm2 start npm --name "commerce-frontend" -- start
+            pm2 start npm --name "commerce-frontend" -- run serve:dev -- --port 3000
           EOF
