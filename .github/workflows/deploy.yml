@@ -25,13 +25,22 @@ jobs:
           VUE_APP_BASE_URL: http://43.202.24.139:8081
         run: npm run build
 
-      - name: Copy project files via SSH
+      - name: Remove existing project on EC2
         env:
           SSH_PRIVATE_KEY: ${{ secrets.SSH_PRIVATE_KEY }}
         run: |
           mkdir -p ~/.ssh
           echo "$SSH_PRIVATE_KEY" > ~/.ssh/id_rsa
           chmod 600 ~/.ssh/id_rsa
+          ssh -o StrictHostKeyChecking=no -i ~/.ssh/id_rsa ec2-user@${{ secrets.EC2_HOST }} << 'EOF'
+            rm -rf /home/ec2-user/commerce-frontend
+            sudo rm -rf /usr/share/nginx/html/*
+          EOF
+
+      - name: Copy project files via SSH
+        env:
+          SSH_PRIVATE_KEY: ${{ secrets.SSH_PRIVATE_KEY }}
+        run: |
           rsync -avz --exclude 'node_modules' --exclude '.git' -e "ssh -o StrictHostKeyChecking=no -i ~/.ssh/id_rsa" ./ ec2-user@${{ secrets.EC2_HOST }}:/home/ec2-user/commerce-frontend/
 
       - name: Install dependencies on EC2 and start application
