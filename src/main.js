@@ -3,7 +3,7 @@ import App from "./App.vue";
 import router from "./router";
 import { useAuth } from "./composables/useAuth";
 import { jwtDecode } from "jwt-decode";
-
+import "bulma/css/bulma.css"; // Bulma CSS 추가
 const app = createApp(App);
 
 const { setLoginResult } = useAuth();

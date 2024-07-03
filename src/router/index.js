@@ -7,6 +7,9 @@ import AdminCategory from "@/components/category/AdminCategory.vue";
 import AdminMember from "@/components/member/AdminMember.vue";
 import AdminMemberDetail from "@/components/member/AdminMemberDetail.vue"; // AdminMemberDetail 컴포넌트 추가
 
+import SellerProductList from "@/components/product/seller/SellerProduct.vue";
+import SellerProductEdit from "@/components/product/seller/SellerProductEdit.vue";
+
 const routes = [
   {
     path: "/",
@@ -40,6 +43,25 @@ const routes = [
     name: "AdminMemberDetail",
     component: AdminMemberDetail,
     meta: { requiresAuth: true, role: "ADMIN" },
+    props: true,
+  },
+  {
+    path: "/seller/products",
+    name: "SellerProductList",
+    component: SellerProductList,
+    meta: { requiresAuth: true, role: "SELLER" },
+  },
+  {
+    path: "/seller/products/create",
+    name: "SellerProductCreate",
+    component: SellerProductEdit,
+    meta: { requiresAuth: true, role: "SELLER" },
+  },
+  {
+    path: "/seller/products/edit/:id",
+    name: "SellerProductEdit",
+    component: SellerProductEdit,
+    meta: { requiresAuth: true, role: "SELLER" },
     props: true,
   },
 ];

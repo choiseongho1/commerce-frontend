@@ -19,6 +19,11 @@
             >사용자 관리</router-link
           >
         </li>
+        <li v-if="isLoggedIn && state.role === 'SELLER'" class="nav-item">
+          <router-link to="/seller/products" class="nav-link"
+            >제품 관리</router-link
+          >
+        </li>
         <li v-if="isLoggedIn" class="nav-item">
           <span class="nav-link"
             >안녕하세요 {{ state.name }}님! [{{ state.role }}]</span

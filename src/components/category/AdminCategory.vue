@@ -23,43 +23,45 @@
 
 <script setup>
 import { ref, onMounted } from "vue";
-import axiosInstance from "@/utils/axiosUtils";
+import {
+  fetchCategories,
+  createCategory,
+  updateCategory,
+} from "@/api/category";
 
 const newCategoryName = ref("");
 const categories = ref([]);
 
-const fetchCategories = async () => {
+const loadCategories = async () => {
   try {
-    const response = await axiosInstance.get("/admin/api/v1/category");
+    const response = await fetchCategories();
     categories.value = response.data;
   } catch (error) {
     console.error("카테고리 목록을 가져오는 데 실패했습니다:", error);
   }
 };
 
-const createCategory = async () => {
+const createCategoryHandler = async () => {
   try {
-    await axiosInstance.post("/admin/api/v1/category", {
-      name: newCategoryName.value,
-    });
+    await createCategory({ name: newCategoryName.value });
     newCategoryName.value = "";
-    fetchCategories(); // 카테고리를 생성한 후 전체 목록을 다시 조회합니다.
+    loadCategories();
   } catch (error) {
     console.error("카테고리 등록에 실패했습니다:", error);
   }
 };
 
-const updateCategory = async (category) => {
+const updateCategoryHandler = async (category) => {
   try {
-    await axiosInstance.put(`/admin/api/v1/category`, category);
+    await updateCategory(category);
     alert("카테고리가 성공적으로 수정되었습니다.");
-    fetchCategories(); // 카테고리를 수정한 후 전체 목록을 다시 조회합니다.
+    loadCategories();
   } catch (error) {
     console.error("카테고리 수정에 실패했습니다:", error);
   }
 };
 
-onMounted(fetchCategories);
+onMounted(loadCategories);
 </script>
 
 <style scoped>
