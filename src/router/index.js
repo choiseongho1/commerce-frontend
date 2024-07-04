@@ -10,6 +10,9 @@ import AdminMemberDetail from "@/components/member/AdminMemberDetail.vue"; // Ad
 import SellerProductList from "@/components/product/seller/SellerProduct.vue";
 import SellerProductEdit from "@/components/product/seller/SellerProductEdit.vue";
 
+import UserProduct from "@/components/product/user/UserProduct.vue"; // UserProduct 컴포넌트 추가
+import UserProductDetail from "@/components/product/user/UserProductDetail.vue"; // UserProductDetail 컴포넌트 추가
+
 const routes = [
   {
     path: "/",
@@ -63,6 +66,19 @@ const routes = [
     component: SellerProductEdit,
     meta: { requiresAuth: true, role: "SELLER" },
     props: true,
+  },
+  {
+    path: "/user/products",
+    name: "UserProduct",
+    component: UserProduct,
+    meta: { requiresAuth: true, role: "USER" },
+  },
+
+  {
+    path: "/user/products/:id",
+    name: "UserProductDetail",
+    component: UserProductDetail,
+    meta: { requiresAuth: true, role: "USER" },
   },
 ];
 

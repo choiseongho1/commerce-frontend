@@ -21,7 +21,12 @@
         </li>
         <li v-if="isLoggedIn && state.role === 'SELLER'" class="nav-item">
           <router-link to="/seller/products" class="nav-link"
-            >제품 관리</router-link
+            >상품 등록/수정</router-link
+          >
+        </li>
+        <li v-if="isLoggedIn && state.role === 'USER'" class="nav-item">
+          <router-link to="/user/products" class="nav-link"
+            >상품 목록</router-link
           >
         </li>
         <li v-if="isLoggedIn" class="nav-item">

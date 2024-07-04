@@ -95,8 +95,8 @@ import { ref, onMounted } from "vue";
 import {
   createProduct,
   updateProduct,
-  getProductList,
   deleteProduct,
+  getProductInfoBySeller,
 } from "@/api/product";
 import { fetchCategoriesBySeller } from "@/api/category";
 import { useRoute, useRouter } from "vue-router";
@@ -108,7 +108,7 @@ export default {
       price: 0,
       stockQuantity: 0,
       categoryId: "",
-      imgUrl: "",
+      image: "",
       description: "",
     });
     const categories = ref([]);
@@ -117,13 +117,14 @@ export default {
     const isEdit = ref(false);
 
     onMounted(async () => {
-      if (route.params.id) {
-        isEdit.value = true;
-        const response = await getProductList({ id: route.params.id });
-        product.value = response.data[0];
-      }
       const categoryResponse = await fetchCategoriesBySeller();
       categories.value = categoryResponse.data;
+
+      if (route.params.id) {
+        isEdit.value = true;
+        const response = await getProductInfoBySeller(route.params.id);
+        product.value = response.data;
+      }
     });
 
     const saveProduct = async () => {
@@ -161,6 +162,9 @@ export default {
   margin-top: 1.5rem;
 }
 .field + .field {
+  margin-top: 1rem;
+}
+.image {
   margin-top: 1rem;
 }
 </style>
