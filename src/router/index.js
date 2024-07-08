@@ -13,6 +13,8 @@ import SellerProductEdit from "@/components/product/seller/SellerProductEdit.vue
 import UserProduct from "@/components/product/user/UserProduct.vue"; // UserProduct 컴포넌트 추가
 import UserProductDetail from "@/components/product/user/UserProductDetail.vue"; // UserProductDetail 컴포넌트 추가
 
+import UserCart from "@/components/cart/UserCart.vue"; // UserCart 컴포넌트 추가
+
 const routes = [
   {
     path: "/",
@@ -80,6 +82,13 @@ const routes = [
     component: UserProductDetail,
     meta: { requiresAuth: true, role: "USER" },
   },
+
+  {
+    path: "/user/cart",
+    name: "UserCart",
+    component: UserCart,
+    meta: { requiresAuth: true, role: "USER" },
+  },
 ];
 
 const router = createRouter({
@@ -99,6 +108,13 @@ router.beforeEach((to, from, next) => {
         const decodedToken = jwtDecode(token);
         console.log("Decoded Token:", decodedToken);
         const userRole = decodedToken.role;
+
+        const currentTime = Math.floor(Date.now() / 1000);
+        if (decodedToken.exp < currentTime) {
+          localStorage.removeItem("token");
+          next({ name: "Login" });
+          return;
+        }
 
         if (to.meta.role && to.meta.role !== userRole) {
           next({ name: "Login" });

@@ -1,43 +1,52 @@
 <template>
   <nav class="navbar">
     <div class="nav-container">
-      <div class="nav-logo">
-        <router-link to="/">홈</router-link>
+      <div class="nav-left">
+        <div class="nav-logo">
+          <router-link to="/">홈</router-link>
+        </div>
+        <ul class="nav-menu">
+          <li v-if="isLoggedIn && state.role === 'ADMIN'" class="nav-item">
+            <router-link to="/admin/categories" class="nav-link"
+              >카테고리 관리</router-link
+            >
+            <router-link to="/admin/members" class="nav-link"
+              >사용자 관리</router-link
+            >
+          </li>
+          <li v-if="isLoggedIn && state.role === 'SELLER'" class="nav-item">
+            <router-link to="/seller/products" class="nav-link"
+              >상품 등록/수정</router-link
+            >
+          </li>
+          <li v-if="isLoggedIn && state.role === 'USER'" class="nav-item">
+            <router-link to="/user/products" class="nav-link"
+              >상품 목록</router-link
+            >
+          </li>
+        </ul>
       </div>
-      <ul class="nav-menu">
-        <li v-if="!isLoggedIn" class="nav-item">
-          <router-link to="/login" class="nav-link">로그인</router-link>
-        </li>
-        <li v-if="!isLoggedIn" class="nav-item">
-          <router-link to="/register" class="nav-link">회원가입</router-link>
-        </li>
-        <li v-if="isLoggedIn && state.role === 'ADMIN'" class="nav-item">
-          <router-link to="/admin/categories" class="nav-link"
-            >카테고리 관리</router-link
-          >
-          <router-link to="/admin/members" class="nav-link"
-            >사용자 관리</router-link
-          >
-        </li>
-        <li v-if="isLoggedIn && state.role === 'SELLER'" class="nav-item">
-          <router-link to="/seller/products" class="nav-link"
-            >상품 등록/수정</router-link
-          >
-        </li>
-        <li v-if="isLoggedIn && state.role === 'USER'" class="nav-item">
-          <router-link to="/user/products" class="nav-link"
-            >상품 목록</router-link
-          >
-        </li>
-        <li v-if="isLoggedIn" class="nav-item">
-          <span class="nav-link"
-            >안녕하세요 {{ state.name }}님! [{{ state.role }}]</span
-          >
-        </li>
-        <li v-if="isLoggedIn" class="nav-item">
-          <a href="#" @click.prevent="logout" class="nav-link">로그아웃</a>
-        </li>
-      </ul>
+      <div class="nav-right">
+        <ul class="nav-menu">
+          <li v-if="!isLoggedIn" class="nav-item">
+            <router-link to="/login" class="nav-link">로그인</router-link>
+          </li>
+          <li v-if="!isLoggedIn" class="nav-item">
+            <router-link to="/register" class="nav-link">회원가입</router-link>
+          </li>
+          <li v-if="isLoggedIn" class="nav-item">
+            <router-link to="/user/cart" class="nav-link">장바구니</router-link>
+          </li>
+          <li v-if="isLoggedIn" class="nav-item">
+            <span class="nav-link"
+              >안녕하세요 {{ state.name }}님! [{{ state.role }}]</span
+            >
+          </li>
+          <li v-if="isLoggedIn" class="nav-item">
+            <a href="#" @click.prevent="logout" class="nav-link">로그아웃</a>
+          </li>
+        </ul>
+      </div>
     </div>
   </nav>
 </template>
@@ -74,14 +83,27 @@ const logout = () => {
   top: 0;
   width: 100%;
   z-index: 1000;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
   height: 60px; /* 고정 높이 설정 */
+}
+
+.nav-left {
+  display: flex;
+  align-items: center;
+}
+
+.nav-right {
+  display: flex;
+  align-items: center;
 }
 
 .nav-container {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  height: 100%; /* 컨테이너가 네비게이션 바의 전체 높이를 차지하도록 설정 */
+  width: 100%;
 }
 
 .nav-logo a {

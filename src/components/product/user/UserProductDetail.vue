@@ -20,6 +20,7 @@
               type="number"
               v-model.number="quantity"
               min="1"
+              @input="checkQuantity"
             />
           </div>
         </div>
@@ -35,22 +36,42 @@
 <script>
 import { ref, onMounted } from "vue";
 import { useRoute } from "vue-router";
-import { getProductInfoByUser } from "@/api/product"; // 상품 상세 정보를 가져오는 API 호출 함수
+import { getProductInfoByUser } from "@/api/product";
+import { addItemToCart } from "@/api/cartItem";
+import { useAuth } from "@/composables/useAuth";
 
 export default {
   setup() {
     const route = useRoute();
     const product = ref({});
     const quantity = ref(1);
+    const { state } = useAuth();
 
     onMounted(async () => {
       const response = await getProductInfoByUser(route.params.id);
       product.value = response.data;
     });
 
-    const addToCart = () => {
-      // 장바구니에 추가 로직 구현
-      console.log("장바구니에 추가:", product.value, quantity.value);
+    const checkQuantity = () => {
+      if (quantity.value < 1) {
+        quantity.value = 1;
+      }
+    };
+
+    const addToCart = async () => {
+      try {
+        const cartItemAddDto = {
+          productId: product.value.productId,
+          quantity: quantity.value,
+          memberId: state.memberId,
+        };
+        const response = await addItemToCart(cartItemAddDto);
+        console.log("장바구니에 추가됨:", response.data);
+        alert("장바구니에 상품이 추가되었습니다.");
+      } catch (error) {
+        console.error("장바구니 추가 실패:", error);
+        alert("장바구니에 상품을 추가하는 데 실패했습니다.");
+      }
     };
 
     const buyNow = () => {
@@ -58,7 +79,7 @@ export default {
       console.log("바로 구매:", product.value, quantity.value);
     };
 
-    return { product, quantity, addToCart, buyNow };
+    return { product, quantity, addToCart, buyNow, checkQuantity };
   },
 };
 </script>

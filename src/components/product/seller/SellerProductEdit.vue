@@ -73,6 +73,43 @@
             ></textarea>
           </div>
         </div>
+
+        <!-- 옵션 추가 영역 -->
+        <div class="field">
+          <label class="label">옵션</label>
+          <div
+            v-for="(option, index) in product.options"
+            :key="index"
+            class="option-group"
+          >
+            <div class="control is-flex">
+              <input
+                class="input mr-2"
+                type="text"
+                v-model="option.name"
+                placeholder="옵션 이름"
+                required
+              />
+              <input
+                class="input mr-2"
+                type="number"
+                v-model="option.additionalPrice"
+                placeholder="추가 가격"
+                required
+              />
+              <button
+                class="button is-danger"
+                @click.prevent="removeOption(index)"
+              >
+                옵션 삭제
+              </button>
+            </div>
+          </div>
+          <button class="button is-primary mt-2" @click.prevent="addOption">
+            옵션 추가
+          </button>
+        </div>
+
         <div class="field">
           <div class="control">
             <button class="button is-primary" type="submit">저장</button>
@@ -108,8 +145,9 @@ export default {
       price: 0,
       stockQuantity: 0,
       categoryId: "",
-      image: "",
+      imgUrl: "",
       description: "",
+      options: [],
     });
     const categories = ref([]);
     const route = useRoute();
@@ -123,9 +161,21 @@ export default {
       if (route.params.id) {
         isEdit.value = true;
         const response = await getProductInfoBySeller(route.params.id);
-        product.value = response.data;
+        const productData = response.data;
+        product.value = {
+          ...productData,
+          options: productData.options || [], // 옵션이 없을 경우 빈 배열로 초기화
+        };
       }
     });
+
+    const addOption = () => {
+      product.value.options.push({ name: "", additionalPrice: 0 });
+    };
+
+    const removeOption = (index) => {
+      product.value.options.splice(index, 1);
+    };
 
     const saveProduct = async () => {
       if (isEdit.value) {
@@ -141,7 +191,15 @@ export default {
       router.push("/seller/products");
     };
 
-    return { product, saveProduct, removeProduct, categories, isEdit };
+    return {
+      product,
+      saveProduct,
+      removeProduct,
+      categories,
+      isEdit,
+      addOption,
+      removeOption,
+    };
   },
 };
 </script>
@@ -166,5 +224,18 @@ export default {
 }
 .image {
   margin-top: 1rem;
+}
+.option-group {
+  margin-bottom: 10px;
+}
+.button {
+  margin-top: 10px;
+}
+.is-flex {
+  display: flex;
+  align-items: center;
+}
+.mr-2 {
+  margin-right: 0.5rem;
 }
 </style>

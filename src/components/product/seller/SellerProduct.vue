@@ -1,5 +1,10 @@
 <template>
   <div class="container mt-6">
+    <div class="buttons">
+      <router-link class="button is-primary" to="/seller/products/create"
+        >상품 등록</router-link
+      >
+    </div>
     <div class="columns is-multiline">
       <div
         class="column is-one-quarter"
@@ -31,8 +36,7 @@
 
 <script>
 import { ref, onMounted } from "vue";
-import { getProductList, deleteProduct } from "@/api/product";
-import { fetchCategoriesBySeller } from "@/api/category";
+import { getProductList } from "@/api/product";
 
 export default {
   setup() {
@@ -43,14 +47,9 @@ export default {
       products.value = response.data;
     };
 
-    const removeProduct = async (id) => {
-      await deleteProduct(id);
-      loadProducts();
-    };
-
     onMounted(loadProducts);
 
-    return { products, removeProduct };
+    return { products };
   },
 };
 </script>
@@ -70,5 +69,10 @@ export default {
 }
 .card-footer {
   justify-content: center;
+}
+.buttons {
+  display: flex;
+  justify-content: center;
+  margin-bottom: 20px;
 }
 </style>

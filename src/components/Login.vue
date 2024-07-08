@@ -15,42 +15,50 @@
   </div>
 </template>
 
-<script setup>
-import { ref } from "vue";
+<script>
 import axios from "axios";
+import { ref } from "vue";
+import { useAuth } from "@/composables/useAuth";
 import { useRouter } from "vue-router";
-import { useAuth } from "../composables/useAuth";
 
-const loginForm = ref({
-  memberId: "",
-  password: "",
-});
+export default {
+  setup() {
+    const loginForm = ref({
+      username: "",
+      password: "",
+    });
+    const { setLoginResult } = useAuth();
+    const router = useRouter();
 
-const router = useRouter();
-const { setLoginResult } = useAuth();
-
-const login = async () => {
-  console.log(`${process.env.VUE_APP_BASE_URL}`);
-  try {
-    const response = await axios.post(
-      `${process.env.VUE_APP_BASE_URL}/default/login`,
-      loginForm.value,
-      {
-        headers: {
-          "Content-Type": "application/json",
-        },
-        withCredentials: true, // CORS 설정 추가
+    const login = async () => {
+      console.log(`${process.env.VUE_APP_BASE_URL}`);
+      try {
+        const response = await axios.post(
+          `${process.env.VUE_APP_BASE_URL}/default/login`,
+          loginForm.value,
+          {
+            headers: {
+              "Content-Type": "application/json",
+            },
+            withCredentials: true, // CORS 설정 추가
+          }
+        );
+        const loginResult = response.data;
+        console.log("Login Result:", loginResult); // 디버그 로그 추가
+        localStorage.setItem("token", loginResult.loginToken);
+        setLoginResult(loginResult);
+        router.push("/"); // 로그인 후 리디렉션할 페이지 설정
+      } catch (error) {
+        console.error("로그인 실패:", error);
+        alert("로그인에 실패했습니다. 다시 시도해주세요.");
       }
-    );
-    const loginResult = response.data;
-    console.log("Login Result:", loginResult); // 디버그 로그 추가
-    localStorage.setItem("token", loginResult.loginToken);
-    setLoginResult(loginResult);
-    router.push("/"); // 로그인 후 리디렉션할 페이지 설정
-  } catch (error) {
-    console.error("로그인 실패:", error);
-    alert("로그인에 실패했습니다. 다시 시도해주세요.");
-  }
+    };
+
+    return {
+      loginForm,
+      login,
+    };
+  },
 };
 </script>
 
