@@ -33,23 +33,20 @@ jobs:
           echo "$SSH_PRIVATE_KEY" > ~/.ssh/id_rsa
           chmod 600 ~/.ssh/id_rsa
           ssh -o StrictHostKeyChecking=no -i ~/.ssh/id_rsa ec2-user@${{ secrets.EC2_HOST }} << 'EOF'
-            rm -rf /home/ec2-user/commerce-frontend
             sudo rm -rf /usr/share/nginx/html/*
           EOF
 
-      - name: Copy project files via SSH
+      - name: Copy built files to EC2
         env:
           SSH_PRIVATE_KEY: ${{ secrets.SSH_PRIVATE_KEY }}
         run: |
-          rsync -avz --exclude 'node_modules' --exclude '.git' -e "ssh -o StrictHostKeyChecking=no -i ~/.ssh/id_rsa" ./ ec2-user@${{ secrets.EC2_HOST }}:/home/ec2-user/commerce-frontend/
+          rsync -avz -e "ssh -o StrictHostKeyChecking=no -i ~/.ssh/id_rsa" dist/ ec2-user@${{ secrets.EC2_HOST }}:/home/ec2-user/commerce-frontend/
 
-      - name: Install dependencies on EC2 and start application
+      - name: Move files to Nginx html directory
         env:
           SSH_PRIVATE_KEY: ${{ secrets.SSH_PRIVATE_KEY }}
         run: |
           ssh -o StrictHostKeyChecking=no -i ~/.ssh/id_rsa ec2-user@${{ secrets.EC2_HOST }} << 'EOF'
-            cd /home/ec2-user/commerce-frontend
-            npm install
-            pm2 delete all || true
-            pm2 start npm --name "commerce-frontend" -- run serve:dev -- --port 3000
+            sudo mv /home/ec2-user/commerce-frontend/* /usr/share/nginx/html/
+            sudo systemctl restart nginx
           EOF
