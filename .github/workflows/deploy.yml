@@ -15,14 +15,14 @@ jobs:
       - name: Set up Node.js
         uses: actions/setup-node@v3
         with:
-          node-version: '20'
+          node-version: "20"
 
       - name: Install dependencies
         run: npm install
 
       - name: Build project
         env:
-          VUE_APP_BASE_URL: http://43.202.24.139:8081
+          VUE_APP_BASE_URL: http://43.202.24.139:8080
         run: npm run build
 
       - name: Remove existing project on EC2
