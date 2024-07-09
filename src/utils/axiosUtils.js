@@ -3,6 +3,7 @@ import { jwtDecode } from "jwt-decode";
 
 const axiosInstance = axios.create({
   baseURL: process.env.VUE_APP_BASE_URL,
+  withCredentials: true, // CORS 요청에 자격 증명을 포함
 });
 
 // 토큰을 동적으로 설정하고 memberId를 헤더에 추가하기 위한 request interceptor

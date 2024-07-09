@@ -45,7 +45,7 @@
 
 <script setup>
 import { ref } from "vue";
-import axios from "axios";
+import axiosInstance from "@/utils/axiosUtils";
 
 const registerForm = ref({
   memberId: "",
@@ -64,10 +64,7 @@ const register = async () => {
   }
 
   try {
-    await axios.post(
-      `${process.env.VUE_APP_BASE_URL}/default`,
-      registerForm.value
-    );
+    await axiosInstance.post("/default", registerForm.value);
     alert("회원가입이 완료되었습니다.");
   } catch (error) {
     console.error("회원가입 실패:", error);
