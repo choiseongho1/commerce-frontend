@@ -1,7 +1,7 @@
 <template>
   <div class="cart-container">
     <h1>장바구니</h1>
-    <div v-if="cartItems.length === 0" class="empty-cart">
+    <div v-if="groupedCartItems.length === 0" class="empty-cart">
       장바구니에 담긴 상품이 없습니다.
     </div>
     <div v-else>
@@ -10,43 +10,73 @@
         <span>전체 {{ cartItems.length }}개</span>
         <button @click="removeSelectedItems">선택 삭제</button>
       </div>
-      <div class="cart-items">
-        <div class="cart-item" v-for="item in cartItems" :key="item.cartItemId">
-          <input type="checkbox" v-model="item.checked" />
-          <img :src="item.imgUrl" alt="상품 이미지" class="cart-item-image" />
-          <div class="cart-item-details">
-            <div class="cart-item-header">
-              <h2>{{ item.name }}</h2>
-              <button
-                @click="removeItem(item.cartItemId)"
-                class="delete-button"
-              >
-                ×
-              </button>
+      <div class="cart-groups">
+        <div
+          class="cart-group"
+          v-for="(group, productId) in groupedCartItems"
+          :key="productId"
+        >
+          <div class="group-header">
+            <input
+              type="checkbox"
+              v-model="group.checked"
+              @change="toggleGroupSelect(group)"
+            />
+            <img :src="group[0].imgUrl" alt="상품 이미지" class="group-image" />
+            <div class="group-details">
+              <h2>{{ group[0].name }}</h2>
             </div>
-            <p>수량: {{ item.quantity }} | {{ item.option }}</p>
-            <div class="cart-item-price">
-              <span class="total-price"
-                >{{ item.price * item.quantity }}원</span
-              >
+            <button
+              @click="removeItem(group[0].cartItemId)"
+              class="delete-button group-delete"
+            >
+              ×
+            </button>
+          </div>
+          <div class="group-content">
+            <div class="cart-item" v-for="item in group" :key="item.cartItemId">
+              <div class="cart-item-details">
+                <div class="cart-item-header">
+                  <h2>{{ item.optionName ? item.optionName : "기본상품" }}</h2>
+                  <button
+                    @click="removeItem(item.cartItemId)"
+                    class="delete-button"
+                  >
+                    ×
+                  </button>
+                </div>
+                <p>
+                  수량: {{ item.quantity }} | (+₩{{
+                    item.additionalPrice || 0
+                  }})
+                </p>
+                <div class="cart-item-price">
+                  <span class="total-price"
+                    >{{
+                      (item.price + (item.additionalPrice || 0)) *
+                      item.quantity
+                    }}원</span
+                  >
+                </div>
+              </div>
             </div>
           </div>
+          <div class="group-summary">
+            <div class="summary-item">
+              <span>선택상품금액</span>
+              <span>{{ groupTotalPrice(group) }}원</span>
+            </div>
+            <div class="summary-item">
+              <span>할인 금액 예상</span>
+              <span>-{{ groupImmediateDiscount(group) }}원</span>
+            </div>
+            <div class="summary-total">
+              <span>주문금액</span>
+              <span>{{ groupOrderTotal(group) }}원</span>
+            </div>
+            <button class="order-button">주문하기</button>
+          </div>
         </div>
-      </div>
-      <div class="cart-summary">
-        <div class="summary-item">
-          <span>선택상품금액</span>
-          <span>{{ selectedItemsTotalPrice }}원</span>
-        </div>
-        <div class="summary-item">
-          <span>할인 금액 예상</span>
-          <span>-{{ immediateDiscount }}원</span>
-        </div>
-        <div class="summary-total">
-          <span>주문금액</span>
-          <span>{{ orderTotal }}원</span>
-        </div>
-        <button class="order-button">결제하기</button>
       </div>
     </div>
   </div>
@@ -84,7 +114,7 @@ export default {
     const removeSelectedItems = async () => {
       const selectedItems = cartItems.value.filter((item) => item.checked);
       for (const item of selectedItems) {
-        await removeItem(item.id);
+        await removeItem(item.cartItemId);
       }
       await fetchCartItems();
     };
@@ -95,20 +125,38 @@ export default {
       });
     };
 
-    const selectedItemsTotalPrice = computed(() => {
-      return cartItems.value
-        .filter((item) => item.checked)
-        .reduce((total, item) => total + item.price * item.quantity, 0);
+    const groupedCartItems = computed(() => {
+      return cartItems.value.reduce((groups, item) => {
+        if (!groups[item.productId]) {
+          groups[item.productId] = [];
+        }
+        groups[item.productId].push(item);
+        return groups;
+      }, {});
     });
 
-    const immediateDiscount = computed(() => {
-      // 현재는 고정값으로 설정, 할인 로직을 추가할 수 있습니다.
+    const groupTotalPrice = (group) => {
+      return group.reduce(
+        (total, item) =>
+          total + (item.price + (item.additionalPrice || 0)) * item.quantity,
+        0
+      );
+    };
+
+    const groupImmediateDiscount = (group) => {
       return 0; // 예시 할인 금액
-    });
+    };
 
-    const orderTotal = computed(() => {
-      return selectedItemsTotalPrice.value - immediateDiscount.value;
-    });
+    const groupOrderTotal = (group) => {
+      return groupTotalPrice(group) - groupImmediateDiscount(group);
+    };
+
+    const toggleGroupSelect = (group) => {
+      const allChecked = group.every((item) => item.checked);
+      group.forEach((item) => {
+        item.checked = !allChecked;
+      });
+    };
 
     return {
       cartItems,
@@ -116,14 +164,15 @@ export default {
       removeItem,
       removeSelectedItems,
       toggleSelectAll,
-      selectedItemsTotalPrice,
-      immediateDiscount,
-      orderTotal,
+      groupedCartItems,
+      groupTotalPrice,
+      groupImmediateDiscount,
+      groupOrderTotal,
+      toggleGroupSelect,
     };
   },
 };
 </script>
-
 <style scoped>
 .cart-container {
   max-width: 1000px;
@@ -149,23 +198,46 @@ export default {
   padding: 10px 0;
 }
 
-.cart-items {
+.cart-groups {
   margin-top: 20px;
 }
 
-.cart-item {
-  display: flex;
-  align-items: center;
-  border-bottom: 1px solid #ddd;
-  padding: 10px 0;
+.cart-group {
+  margin-bottom: 20px;
+  padding: 10px;
+  border: 1px solid #ddd;
+  border-radius: 8px;
 }
 
-.cart-item img {
+.group-header {
+  display: flex;
+  align-items: center;
+  padding-bottom: 10px;
+  border-bottom: 1px solid #ddd; /* 왼쪽과 오른쪽을 나누는 선 */
+}
+
+.group-image {
   width: 80px;
   height: 80px;
   object-fit: cover;
   margin-right: 20px;
   border-radius: 8px;
+}
+
+.group-details {
+  flex-grow: 1;
+}
+
+.group-content {
+  display: flex;
+  flex-direction: column;
+  padding: 10px 0;
+}
+
+.cart-item {
+  display: flex;
+  align-items: center;
+  padding: 10px 0;
 }
 
 .cart-item-details {
@@ -181,14 +253,14 @@ export default {
   align-items: center;
 }
 
-.cart-item-details h2 {
+.cart-item-header h2 {
   font-size: 1.2em;
   margin: 0;
 }
 
-.cart-item-details p {
+.cart-item-header p {
   color: #777;
-  margin: 5px 0;
+  margin: 0 0 0 10px;
 }
 
 .cart-item-price {
@@ -213,23 +285,15 @@ export default {
   color: #ff7875;
 }
 
-.cart-summary {
-  margin-top: 20px;
-  padding: 20px;
-  background-color: #f9f9f9;
-  border-radius: 8px;
-  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
-}
-
-.summary-item,
-.summary-total {
+.group-summary .summary-item,
+.group-summary .summary-total {
   display: flex;
   justify-content: space-between;
   margin-bottom: 10px;
   font-size: 1.1em;
 }
 
-.summary-total {
+.group-summary .summary-total {
   font-weight: bold;
   font-size: 1.3em;
 }

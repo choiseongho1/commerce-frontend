@@ -81,6 +81,7 @@
             v-for="(option, index) in product.options"
             :key="index"
             class="option-group"
+            :class="{ deleted: option.status === 'deleted' }"
           >
             <div class="control is-flex">
               <input
@@ -89,6 +90,8 @@
                 v-model="option.name"
                 placeholder="옵션 이름"
                 required
+                @change="markOptionAsModified(index)"
+                :disabled="option.status === 'deleted'"
               />
               <input
                 class="input mr-2"
@@ -96,10 +99,13 @@
                 v-model="option.additionalPrice"
                 placeholder="추가 가격"
                 required
+                @change="markOptionAsModified(index)"
+                :disabled="option.status === 'deleted'"
               />
               <button
                 class="button is-danger"
                 @click.prevent="removeOption(index)"
+                :disabled="option.status === 'deleted'"
               >
                 옵션 삭제
               </button>
@@ -164,17 +170,35 @@ export default {
         const productData = response.data;
         product.value = {
           ...productData,
-          options: productData.options || [], // 옵션이 없을 경우 빈 배열로 초기화
+          options: productData.options.map((option) => ({
+            ...option,
+            status: "original",
+          })), // 기존 옵션에 status 추가
         };
       }
     });
 
     const addOption = () => {
-      product.value.options.push({ name: "", additionalPrice: 0 });
+      product.value.options.push({
+        name: "",
+        additionalPrice: 0,
+        status: "new",
+      });
+    };
+
+    const markOptionAsModified = (index) => {
+      if (product.value.options[index].status === "original") {
+        product.value.options[index].status = "modified";
+      }
     };
 
     const removeOption = (index) => {
-      product.value.options.splice(index, 1);
+      const option = product.value.options[index];
+      if (option.status === "original" || option.status === "modified") {
+        option.status = "deleted";
+      } else {
+        product.value.options.splice(index, 1);
+      }
     };
 
     const saveProduct = async () => {
@@ -199,6 +223,7 @@ export default {
       isEdit,
       addOption,
       removeOption,
+      markOptionAsModified,
     };
   },
 };
@@ -227,6 +252,10 @@ export default {
 }
 .option-group {
   margin-bottom: 10px;
+}
+.option-group.deleted {
+  text-decoration: line-through;
+  color: gray;
 }
 .button {
   margin-top: 10px;
