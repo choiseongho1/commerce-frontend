@@ -15,6 +15,8 @@ import UserProductDetail from "@/components/product/user/UserProductDetail.vue";
 
 import UserCart from "@/components/cart/UserCart.vue"; // UserCart 컴포넌트 추가
 
+import UserOrderCheckout from "@/components/order/UserOrderCheckout.vue";
+
 const routes = [
   {
     path: "/",
@@ -87,6 +89,13 @@ const routes = [
     path: "/user/cart",
     name: "UserCart",
     component: UserCart,
+    meta: { requiresAuth: true, role: "USER" },
+  },
+
+  {
+    path: "/user/order",
+    name: "UserOrderCheckout",
+    component: UserOrderCheckout,
     meta: { requiresAuth: true, role: "USER" },
   },
 ];

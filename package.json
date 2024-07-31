@@ -12,9 +12,11 @@
   "dependencies": {
     "@ckeditor/ckeditor5-build-classic": "^42.0.0",
     "@ckeditor/ckeditor5-vue": "^6.0.0",
+    "@portone/browser-sdk": "^0.0.8",
     "axios": "^1.7.2",
     "bulma": "^1.0.1",
     "core-js": "^3.8.3",
+    "jquery": "^3.7.1",
     "jwt-decode": "^4.0.0",
     "vue": "^3.2.13",
     "vue-router": "^4.0.13",

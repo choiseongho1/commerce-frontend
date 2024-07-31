@@ -1,7 +1,7 @@
 <template>
   <div class="cart-container">
     <h1>장바구니</h1>
-    <div v-if="groupedCartItems.length === 0" class="empty-cart">
+    <div v-if="Object.keys(groupedCartItems).length === 0" class="empty-cart">
       장바구니에 담긴 상품이 없습니다.
     </div>
     <div v-else>
@@ -19,7 +19,7 @@
           <div class="group-header">
             <input
               type="checkbox"
-              v-model="group.checked"
+              v-model="group[0].checked"
               @change="toggleGroupSelect(group)"
             />
             <img :src="group[0].imgUrl" alt="상품 이미지" class="group-image" />
@@ -74,23 +74,28 @@
               <span>주문금액</span>
               <span>{{ groupOrderTotal(group) }}원</span>
             </div>
-            <button class="order-button">주문하기</button>
+            <button class="order-button" @click="goToCheckout(group)">
+              주문하기
+            </button>
           </div>
         </div>
       </div>
     </div>
   </div>
 </template>
+
 <script>
 import { ref, onMounted, computed } from "vue";
 import { getCartItems, removeCartItem } from "@/api/cartItem";
 import { useAuth } from "@/composables/useAuth";
+import { useRouter } from "vue-router";
 
 export default {
   setup() {
     const cartItems = ref([]);
     const { state } = useAuth();
     const selectAll = ref(false);
+    const router = useRouter();
 
     const fetchCartItems = async () => {
       const response = await getCartItems();
@@ -158,6 +163,14 @@ export default {
       });
     };
 
+    const goToCheckout = (group) => {
+      const amount = groupOrderTotal(group);
+      router.push({
+        name: "UserOrderCheckout",
+        params: { amount, items: JSON.stringify(group) },
+      });
+    };
+
     return {
       cartItems,
       selectAll,
@@ -169,10 +182,12 @@ export default {
       groupImmediateDiscount,
       groupOrderTotal,
       toggleGroupSelect,
+      goToCheckout,
     };
   },
 };
 </script>
+
 <style scoped>
 .cart-container {
   max-width: 1000px;
